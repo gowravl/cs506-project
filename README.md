@@ -54,7 +54,7 @@ Complete repository documentation and prepare final report. Ensure reproducibili
 
 - Identify and quantify the key environmental factors that influence public health trends.
 
-- Provide actionable insights to support public health preparedness and intervention planning.
+- Generate risk forecasts to support public health situational awareness and help anticipate respiratory health outcome surges under adverse environmental conditions
 
 - Evaluate model performance and assess the reliability of predictions across different conditions.
 
