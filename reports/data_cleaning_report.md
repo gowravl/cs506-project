@@ -6,18 +6,13 @@
 
 ## Overview
 
-This report documents the cleaning operations applied to all six datasets.
-Every decision references a specific finding from the profiling phase (`data_profiling_report.md`).
-No cleaning decisions were made during this phase — only execution of decisions already made.
+This report describes the data cleaning steps we applied to all six datasets. Each step was based on issues identified earlier in the profiling report (data_profiling_report.md). In this phase, we did not make any new cleaning decisions. We simply carried out the cleaning actions that had already been planned.
 
-**Study period after cleaning:** September 25, 2022 to October 31, 2025
-**Master dataset rows:** 1,133 daily rows
-**Master dataset columns:** date, pct_respiratory, pm25, no2, ozone, temperature, humidity
-**Missing values in master:** 0
+After cleaning, the final study period runs from September 25, 2022 to October 31, 2025. The final master dataset contains 1,133 rows in total, with each row representing one day. It includes the columns date, pct_respiratory, pm25, no2, ozone, temperature, and humidity. The final merged dataset has no missing values.
 
 ---
 
-## Dataset 1 — PM2.5
+## Dataset 1: PM2.5
 
 ### Operations Applied
 
@@ -50,7 +45,7 @@ approach was correct over a hard threshold.
 
 ---
 
-## Dataset 2 — NO2
+## Dataset 2: NO2
 
 ### Operations Applied
 
@@ -75,15 +70,11 @@ approach was correct over a hard threshold.
 
 ### Notes
 
-NO2 is measured hourly (1-hour sample duration) unlike PM2.5 which is 24-hour integrated.
-The daily mean averages across both stations and all 24 hours simultaneously.
-National daily averages of 3-17 ppb are consistent with US urban background levels.
-NO2 monitoring is more concentrated in urban areas than PM2.5, making the national
-average slightly more urban-biased.
+Unlike PM2.5, NO2 is measured hourly using a 1-hour sample duration. As a result, the daily value in our cleaned dataset reflects an average across all available hourly readings from all reporting stations on a given day. The final national daily values, which range from 3 to 17 ppb, are reasonable for broad US background conditions. Since NO2 monitoring is more concentrated in urban locations, the national average is likely to be somewhat more influenced by urban areas than the PM2.5 average.
 
 ---
 
-## Dataset 3 — Ozone
+## Dataset 3: Ozone
 
 ### Operations Applied
 
@@ -108,15 +99,11 @@ average slightly more urban-biased.
 
 ### Notes
 
-Ozone is measured as an 8-hour running average. Each station contributes multiple
-overlapping 8-hour window readings per day. The national daily mean averages across
-all windows and all stations. The national daily max of 0.045 ppm is well below the
-EPA 8-hour standard of 0.070 ppm — which is expected since that standard applies to
-local 8-hour peaks, not national daily averages.
+Ozone is reported as an 8-hour running average, so each station can contribute several overlapping 8-hour measurements within the same day. Our daily national value was calculated by averaging across all of those readings from all stations. The final national daily maximum of 0.045 ppm is well below the EPA 8-hour standard of 0.070 ppm, which is expected because the EPA limit applies to local peak exposure levels, not to a national daily average.
 
 ---
 
-## Dataset 4 — Temperature
+## Dataset 4: Temperature
 
 ### Operations Applied
 
@@ -142,18 +129,12 @@ local 8-hour peaks, not national daily averages.
 
 ### Notes
 
-Hard physical bounds were used instead of percentile capping — unlike the pollutants,
-physical limits for temperature are well-defined and meaningful. This was the critical
-difference: a 99.5th percentile cap only clips the upper tail and would have left the
--1,177.67°F sentinel value in the data, corrupting the national daily average for that
-specific day. Profiling revealed this in advance.
 
-The national daily average range of 22°F to 81°F is realistic. Individual station ranges
-are much wider, but the national mean across all US stations naturally compresses the range.
+For temperature, we used physical limits instead of percentile capping because unrealistic temperature values are easier to identify directly. This was important because a percentile cap would not have fixed the extreme negative sensor error. The final daily range looked realistic for a national average.
 
 ---
 
-## Dataset 5 — Humidity
+## Dataset 5: Humidity
 
 ### Operations Applied
 
@@ -179,14 +160,11 @@ are much wider, but the national mean across all US stations naturally compresse
 
 ### Notes
 
-Filtering to Relative Humidity was the most structurally important cleaning step across
-all datasets. Without it, the daily national averages would be a nonsensical blend of
-percent and degree values. The -25% minimum in the raw profile was a misleading artifact
-of the mixed file — entirely resolved by the parameter filter.
+Filtering to Relative Humidity was the most important cleaning step for this dataset. Without it, the daily national averages would have mixed percentage values with dew point values in degrees, which would not be meaningful. The -25% minimum seen in the raw profile was not a real humidity issue, but a misleading result caused by the mixed file structure. Once we filtered to the correct parameter, that issue was fully resolved.
 
 ---
 
-## Dataset 6 — Respiratory (NSSP)
+## Dataset 6: Respiratory (NSSP)
 
 ### Operations Applied
 
@@ -211,10 +189,9 @@ of the mixed file — entirely resolved by the parameter filter.
 
 ### Notes
 
-The simplest dataset to clean — the filter was the only operation. All profiling predictions
-were confirmed exactly: 0 unparseable dates, 0 duplicate dates, 0 invalid values.
-The NSSP data had zero missing days within the study period, meaning the inner join
-did not lose any rows due to respiratory reporting gaps.
+
+This was the simplest dataset to clean, since filtering was the only step required. The profiling results were fully confirmed, with no unparseable dates, no duplicate dates, and no invalid values. The NSSP data also had no missing days during the study period, so the inner join did not drop any rows because of respiratory data gaps.
+
 
 ---
 
@@ -233,11 +210,13 @@ Only dates present in all six datasets with non-null values are included.
 
 ### Why 1,133 rows
 
-The study period from Sep 25 2022 to Oct 31 2025 spans 1,132 calendar days.
-The inner join produced 1,133 rows because the date range is inclusive on both ends.
-The binding constraints were:
-- **Start:** NSSP data begins September 25, 2022 (9 months after EPA datasets start)
-- **End:** Temperature data ends October 31, 2025 (earliest EPA endpoint)
+The study period runs from September 25, 2022 to October 31, 2025. Since both the start date and end date are included, this gives a total of 1,133 calendar days, which is why the inner join also produced 1,133 rows.
+
+The final date range was limited by the overlap across datasets:
+
+Start: The NSSP data begins on September 25, 2022, which is later than the EPA datasets.
+End: The temperature data ends on October 31, 2025, which is the earliest end date among the EPA datasets.
+
 
 ### Master Dataset Descriptive Statistics
 
@@ -256,29 +235,17 @@ The binding constraints were:
 
 Two plots were generated to confirm cleaning did not introduce artifacts:
 
-### Plot 1 — All Variables (cleaned_master_all_variables.png)
+### Plot 1: All Variables (cleaned_master_all_variables.png)
 
-All six variables plotted over the full study period. Key observations confirming correct cleaning:
 
-- **Respiratory** shows three complete winter peaks (Dec 2022, Dec 2023, Dec 2024) and
-  three summer troughs — consistent with known US respiratory illness seasonality
-- **PM2.5** shows the 2023 Canadian wildfire spike (Jun-Sep 2023) preserved — confirms
-  the percentile cap approach was correct over a hard threshold
-- **NO2** peaks in winter months — consistent with less UV radiation to break down NO2
-- **Ozone** peaks in summer — consistent with photochemical production in heat and sunlight
-- **Temperature** shows clean seasonal cycles with no flat lines or spikes
-- **Humidity** shows seasonal variation with higher values in summer and during weather events
-- No flat lines, spikes, or discontinuities visible in any variable
+All six variables were plotted across the full study period to visually check that the cleaning steps had not distorted the data. The overall patterns looked realistic and consistent with what we would expect. Respiratory values showed clear winter peaks and summer lows, PM2.5 still captured the 2023 Canadian wildfire spike, NO2 was generally higher in winter, and ozone peaked in summer. Temperature and humidity also followed smooth seasonal patterns. Overall, there were no obvious flat lines, sudden spikes, or discontinuities in any of the variables.
 
-### Plot 2 — PM2.5 Before vs After (pm25_before_after_cleaning.png)
 
-Before: National daily average including the effects of negative station readings.
-After: Same averages with negatives dropped and 99.5th percentile cap applied.
 
-Key observation: The Jun-Sep 2023 wildfire spike is clearly visible in both plots,
-confirming that meaningful high-pollution events are preserved after cleaning.
-The after plot shows a slightly smoother baseline — the result of removing calibration
-noise from negative station readings.
+### Plot 2: PM2.5 Before vs After (pm25_before_after_cleaning.png)
+
+The second plot compares the PM2.5 series before and after cleaning. The main June to September 2023 wildfire spike is clearly visible in both versions, which shows that the cleaning process preserved this real pollution event. At the same time, the cleaned series has a slightly smoother baseline because the negative station readings and a small number of extreme values were removed.
+
 
 ---
 
@@ -320,7 +287,4 @@ noise from negative station readings.
 | data/processed/respiratory_daily.csv | 18.5 KB | Daily US ARI percent ED visits |
 | data/processed/master_daily.csv | 120.7 KB | Merged dataset, all 7 columns, 1,133 rows |
 
----
-
-*Report generated after Phase 2 cleaning. All operations reference findings from data_profiling_report.md.*
-*Next step: exploratory data analysis and feature engineering.*
+-
