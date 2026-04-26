@@ -18,8 +18,8 @@ After cleaning, the final study period runs from September 25, 2022 to October 3
 
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
-| Drop Arithmetic Mean < 0 | 10,148 | Physically impossible. PM2.5 concentration cannot be negative. Confirmed in profiling. |
-| Cap at 99.5th percentile (35.80 µg/m³) | 14,515 station readings | Removes extreme tail while preserving 192 real wildfire readings above 200 µg/m³ |
+| Drop Arithmetic Mean < 0 | 8,306 | Physically impossible. PM2.5 concentration cannot be negative. Confirmed in profiling. |
+| Cap at 99.5th percentile (38.00 µg/m³) | 11,344 station readings | Removes extreme tail while preserving real wildfire readings above 200 µg/m³ |
 | Parse dates with format='mixed' | All rows | EPA files use MM/DD/YYYY (2022) and YYYY-MM-DD (2023+) across yearly files |
 | Group by date: national daily mean | 2.9M → 1,133 rows | One national value per day across all monitoring stations |
 | No gap interpolation needed | 0 gaps found | Date sequence was complete for study period |
@@ -29,17 +29,17 @@ After cleaning, the final study period runs from September 25, 2022 to October 3
 | Metric | Value |
 |---|---|
 | Final rows | 1,133 |
-| Final range | 3.58 to 20.40 µg/m³ |
-| Mean | 7.60 µg/m³ |
-| Std | 2.03 µg/m³ |
+| Final range | 3.58 to 21.15 µg/m³ |
+| Mean | 7.61 µg/m³ |
+| Std | 2.05 µg/m³ |
 | Missing values | 0 |
 | Validation | PASS |
 
 ### Notes
 
-The 99.5th percentile cap of 35.80 µg/m³ applies at the station-reading level, not the national
-daily average level. After averaging across 2,000+ stations, the national daily max is 20.40 µg/m³.
-The cap affected 14,515 out of 2.9M rows — 0.5% of station readings. The 2023 Canadian wildfire
+The 99.5th percentile cap of 38.00 µg/m³ applies at the station-reading level, not the national
+daily average level. After averaging across 2,000+ stations, the national daily max is 21.15 µg/m³.
+The cap affected 11,344 out of 2.9M rows — 0.4% of station readings. The 2023 Canadian wildfire
 spike visible in the before/after plot is preserved in the cleaned data, confirming the percentile
 approach was correct over a hard threshold.
 
@@ -51,8 +51,8 @@ approach was correct over a hard threshold.
 
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
-| Drop Arithmetic Mean < 0 | 3,254 | Physically impossible. NO2 concentration cannot be negative. |
-| Cap at 99.5th percentile (33.10 ppb) | 2,794 station readings | Standard tail cleanup. No meaningful impact — max 64 ppb was clean. |
+| Drop Arithmetic Mean < 0 | 2,694 | Physically impossible. NO2 concentration cannot be negative. |
+| Cap at 99.5th percentile (32.96 ppb) | 2,219 station readings | Standard tail cleanup. No meaningful impact — max 64 ppb was clean. |
 | Parse dates with format='mixed' | All rows | Same mixed format issue as PM2.5 |
 | Group by date: national daily mean | 562K → 1,133 rows | One national value per day |
 | No gap interpolation needed | 0 gaps found | No missing days in study period |
@@ -81,7 +81,7 @@ Unlike PM2.5, NO2 is measured hourly using a 1-hour sample duration. As a result
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
 | Drop Arithmetic Mean < 0 | 18 | Physically impossible. Profiling found only 18 — cleanest pollutant dataset. |
-| Cap at 99.5th percentile (0.0621 ppm) | 7,040 station readings | Standard tail cleanup. Max 0.136 ppm was real — no hard threshold needed. |
+| Cap at 99.5th percentile (0.0623 ppm) | 5,540 station readings | Standard tail cleanup. Max 0.136 ppm was real — no hard threshold needed. |
 | Parse dates with format='mixed' | All rows | Same mixed format issue as PM2.5 and NO2 |
 | Group by date: national daily mean | 1.4M → 1,133 rows | One national value per day |
 | No gap interpolation needed | 0 gaps found | No missing days in study period |
@@ -205,7 +205,7 @@ Only dates present in all six datasets with non-null values are included.
 | Join type | Inner join on date |
 | Final rows | 1,133 |
 | Date range | 2022-09-25 to 2025-10-31 |
-| Columns | 7 (date + 6 variables) |
+| Columns | 12 (date, 6 value columns, 5 station count columns) |
 | Missing values | 0 |
 
 ### Why 1,133 rows
@@ -223,7 +223,7 @@ End: The temperature data ends on October 31, 2025, which is the earliest end da
 | Column | Min | Mean | Std | Max |
 |---|---|---|---|---|
 | pct_respiratory (%) | 7.09 | 13.24 | 4.08 | 26.58 |
-| pm25 (µg/m³) | 3.58 | 7.60 | 2.03 | 20.40 |
+| pm25 (µg/m³) | 3.58 | 7.61 | 2.05 | 21.15 |
 | no2 (ppb) | 3.03 | 7.59 | 2.23 | 16.77 |
 | ozone (ppm) | 0.019 | 0.032 | 0.006 | 0.045 |
 | temperature (°F) | 21.81 | 57.72 | 14.58 | 80.90 |
@@ -265,8 +265,8 @@ The second plot compares the PM2.5 series before and after cleaning. The main Ju
 
 | Dataset | Raw rows | Key rows removed | Reason | Final daily rows |
 |---|---|---|---|---|
-| PM2.5 | 2,915,841 | 10,148 negatives | Impossible concentration | 1,133 |
-| NO2 | 562,605 | 3,254 negatives | Impossible concentration | 1,133 |
+| PM2.5 | 2,915,841 | 8,306 negatives | Impossible concentration | 1,133 |
+| NO2 | 562,605 | 2,694 negatives | Impossible concentration | 1,133 |
 | Ozone | 1,412,282 | 18 negatives | Impossible concentration | 1,133 |
 | Temperature | 1,184,025 | 80 (1 sentinel + 79 surface heat) | Impossible temperatures | 1,133 |
 | Humidity | 579,258 | 43,518 dew point + 2 above 100% | Wrong parameter + impossible value | 1,133 |
@@ -285,6 +285,6 @@ The second plot compares the PM2.5 series before and after cleaning. The main Ju
 | data/processed/temperature_daily.csv | 36.5 KB | Daily national temperature mean + station count |
 | data/processed/humidity_daily.csv | 36.5 KB | Daily national RH mean + station count |
 | data/processed/respiratory_daily.csv | 18.5 KB | Daily US ARI percent ED visits |
-| data/processed/master_daily.csv | 120.7 KB | Merged dataset, all 7 columns, 1,133 rows |
+| data/processed/master_daily.csv | 144.5 KB | Merged dataset, 12 columns, 1,133 rows |
 
 -

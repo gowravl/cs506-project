@@ -1,106 +1,96 @@
-# Respiratory Disease Prediction from Environmental Factors in New York City
+# Respiratory Disease Prediction from Environmental Factors
 
-**Team Members**:
+**Team Members:**
 - Gowrav Lakshmipathy - U53940054
 - Priya Dilip Bajaria - U08184333
 - Nandini Nandan Narvekar - U25345416
 
 ## Project Description
 
-We aim to analyze the relationship between environmental conditions and respiratory disease outcomes using publicly available health and environmental data. For this, we will be using data collected from New York City to maintain data consistency. 
+We analyze the relationship between environmental conditions and respiratory disease outcomes using publicly available national health and air quality data. The project predicts the daily percentage of US emergency department visits attributed to Acute Respiratory Illness (ARI) based on air quality measurements and weather conditions.
 
-Understanding how environmental factors influence respiratory health is critical for public health preparedness. By quantifying these relationships, hospitals can better anticipate patient surges, individuals with chronic respiratory conditions can take preventive measures on high-risk days, and public health officials can develop targeted interventions. 
+Understanding how environmental factors influence respiratory health is critical for public health preparedness. By quantifying these relationships, hospitals can better anticipate patient surges, individuals with chronic respiratory conditions can take preventive measures on high-risk days, and public health officials can develop targeted interventions.
 
-We will predict respiratory emergency department visits based on air quality measurements, weather conditions, and climate factors to identify which environmental variables most strongly correlate with respiratory illness spikes.
+> **Note on scope:** The original proposal specified New York City. During data collection we found that no daily respiratory count data exists for NYC at the required granularity (NYC EpiQuery provides monthly aggregates only). The CDC NSSP dataset provides complete daily national coverage from September 2022 onwards, and EPA AQS data averages robustly to a national daily value across 2,000+ monitoring stations. See `project_reference.md` for the full rationale.
 
+## Datasets
 
-## Dataset
-Most of our datasets will be collected from the NYC Department of Health and Mental Hygiene.
+| Dataset | Source | Format | Coverage |
+|---|---|---|---|
+| PM2.5 | EPA AQS `daily_88101_YYYY.csv` | Station-day readings, µg/m³ | 2022–2025 |
+| NO2 | EPA AQS `daily_42602_YYYY.csv` | Station-hour readings, ppb | 2022–2025 |
+| Ozone | EPA AQS `daily_44201_YYYY.csv` | Station 8-hr avg, ppm | 2022–2025 |
+| Temperature | EPA AQS `daily_TEMP_YYYY.csv` | Station-hour readings, °F | 2022–2025 |
+| Relative Humidity | EPA AQS `daily_RH_DP_YYYY.csv` | Station-hour readings, % | 2022–2025 |
+| Respiratory ARI | CDC NSSP `nssp_respiratory.csv` | Daily % of ED visits, US | Sep 2022–present |
 
-Link: https://www.nyc.gov/site/doh/data/tools.page
+**Study period:** September 25, 2022 to October 31, 2025 (1,133 days)
+- Start: first date of NSSP data
+- End: last date of EPA temperature data
 
-Further, we will be working on getting the dataset on how pollen leads to respiratory disorder surges.
+## Repository Structure
 
-## Project Timeline (8 weeks)
+```
+project/
+    data/
+        raw/
+            pm25/           daily_88101_YYYY.csv
+            no2/            daily_42602_YYYY.csv
+            ozone/          daily_44201_YYYY.csv
+            temperature/    daily_TEMP_YYYY.csv
+            humidity/       daily_RH_DP_YYYY.csv
+            respiratory/    nssp_respiratory.csv
+        processed/
+            pm25_daily.csv
+            no2_daily.csv
+            ozone_daily.csv
+            temperature_daily.csv
+            humidity_daily.csv
+            respiratory_daily.csv
+            master_daily.csv        ← 1,133 rows × 12 columns
+            features_daily.csv      ← engineered features for modeling
+    outputs/figures/                ← profiling, EDA, and model plots
+    reports/
+        data_profiling_report.md
+        data_cleaning_report.md
+        eda_report.md
+        modeling_report.md
+    data_profiling.ipynb
+    data_cleaning.ipynb
+    eda.ipynb
+    models.ipynb
+    project_reference.md
+    requirements.txt
+```
 
-**Weeks 1-2: Data Collection and Initial Exploration**
+## Notebooks
 
-Download datasets from NYC DOHMH and EpiQuery portals. Perform initial quality checks and document data structure.
+| Notebook | Purpose |
+|---|---|
+| `data_profiling.ipynb` | Inspect all 6 raw datasets, identify issues |
+| `data_cleaning.ipynb` | Apply targeted cleaning, produce `master_daily.csv` |
+| `eda.ipynb` | Correlation, lag, seasonal decomposition, feature engineering |
+| `models.ipynb` | Predictive modeling and evaluation |
 
-**Week 3: Data Cleaning and Integration**
+## Setup
 
-Standardize formats, handle missing values, and merge datasets by date into a unified analysis file.
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-**Week 4: Feature Engineering and Exploratory Data Analysis**
+Run notebooks in order: profiling → cleaning → eda → models.
 
-Engineer relevant features from raw data and compute descriptive statistics. Analyze patterns and relationships in the dataset.
+## Key Findings
 
-**Weeks 5-6: Model Development and Training**
+- Temperature is the strongest predictor of respiratory illness (r = −0.812)
+- Seasonality explains 81.4% of variance in respiratory ED visits
+- NO2 and Ozone show stronger correlations when lagged 12–13 days
+- PM2.5 wildfire spikes (e.g., 2023 Canadian wildfires) are preserved in the cleaned data
 
-Implement and tune predictive models using various machine learning techniques. Perform cross-validation and compare performance metrics.
+## Project Goals
 
-**Week 7: Model Evaluation and Analysis**
-
-Evaluate models on test data and analyze feature importance. Investigate errors and document limitations.
-
-**Week 8: Final Documentation and Presentation**
-
-Complete repository documentation and prepare final report. Ensure reproducibility with automated testing workflows.
-
-
-### Project Goals
-
-- Develop a predictive model to forecast health outcomes based on environmental conditions.
-
-- Identify and quantify the key environmental factors that influence public health trends.
-
-- Generate risk forecasts to support public health situational awareness and help anticipate respiratory health outcome surges under adverse environmental conditions
-
-- Evaluate model performance and assess the reliability of predictions across different conditions.
-
-## Data Collection Plan
-
-### Data Sources
-
-All data will be sourced from the New York City Department of Health and Mental Hygiene public data portals, which provide verified, quality-controlled data that is freely accessible.
-
-**URL:** https://www.nyc.gov/site/doh/data/tools.page
-
-**1. Respiratory Emergency Department Visits**
-Daily counts of emergency department visits categorized by respiratory syndromes.
-
-**2. Air Quality Measurements**
-Measurements of air pollutants including fine particulate matter and nitrogen dioxide.
-
-**3. Weather and Climate Data**
-Daily weather variables including temperature, precipitation, and humidity.
-
-**4. Weather-Related Illness Indicators**
-Emergency department visits for heat and cold-related health conditions.
-
-### Data Collection Method
-
-All datasets will be manually downloaded from NYC DOHMH web portals and saved as CSV files.
-
-**Syndromic Surveillance Data**
-Access the EpiQuery portal, select relevant health indicators for the target period, and export the data.
-
-**Air Quality Data**
-Download pollutant measurements from the Environment & Health Data Portal.
-
-**Climate and Weather Data**
-Download daily weather measurements from the Climate Data Explorer.
-
-**Weather-Related Illness Data**
-Download emergency department visit data for weather-related health conditions.
-
-**Data Integration Process**
-
-After collecting all individual datasets, we will:
-1. Standardize date formats across all files 
-2. Verify temporal alignment and identify any gaps in coverage
-3. Merge datasets using date as the primary key
-4. Create a master dataset with all environmental and health variables aligned by day
-5. Document data provenance and any transformations applied
-6. Store raw and processed data in separate directories within the GitHub repository
-
+- Predict daily ARI emergency department visit rates from environmental variables
+- Identify and quantify which environmental factors most strongly influence respiratory health
+- Evaluate model performance and assess prediction reliability across seasons

@@ -76,7 +76,7 @@ Every cleaning step done later in Phase 2 is based on observations and dataset a
 | Cap at 99.5th percentile | Removes extreme high values while keeping real wildfire events intact. A hard threshold wouldn’t work here because wildfires naturally produce legitimately extreme PM2.5 readings. |
 | Parse dates with `format='mixed'` | EPA files use different date formats across years (MM/DD/YYYY vs YYYY-MM-DD) |
 | Ignore AQI column | We use raw concentration (Arithmetic Mean), not the derived AQI index |
-| Flag days with fewer than 50 stations | Sparse coverage days may produce less representative national averages |
+| Track station counts via n_stations column in master dataset | Sparse coverage days may produce less representative national averages |
 
 ---
 
@@ -297,7 +297,7 @@ The -25% minimum in the full profile comes entirely from Dew Point rows, not fro
 
 ## Dataset 6 - NSSP Respiratory (CDC)
 
-**Source:** CDC NSSP (Centre for Disease COntrol and Prevention National Syndromic Surveillance Program) `nssp_respiratory.csv`
+**Source:** CDC NSSP (Centers for Disease Control and Prevention National Syndromic Surveillance Program) `nssp_respiratory.csv`
 **Expected format:** Daily rows with pathogen, geography, and percent_visits
 
 ### Raw Profile
@@ -379,7 +379,7 @@ This is a limitation of the data itself and can’t really be fixed unless we us
 | Respiratory | 2022-09-25 to 2026-03-21 | 1,274 | Ongoing |
 
 **Effective master dataset range after inner join:** 2022-09-25 to 2025-10-31
-**Expected master rows:** ~1,132 days
+**Expected master rows:** 1,133 days
 
 ### Data Quality Summary
 

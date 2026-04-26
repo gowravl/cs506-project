@@ -1,5 +1,8 @@
 # Exploratory Data Analysis Report
 ## Respiratory Disease Prediction from Environmental Factors
+**Team:** Gowrav Lakshmipathy | Priya Dilip Bajaria | Nandini Nandan Narvekar
+
+---
 
 ## Overview
 
@@ -7,192 +10,105 @@ This report documents all findings from the exploratory data analysis phase.
 The analysis was conducted on the cleaned master dataset of 1,133 daily rows
 spanning September 25, 2022 to October 31, 2025.
 
-**Input:** `data/processed/master_daily.csv` — 1,133 rows, 7 columns
+**Input:** `data/processed/master_daily.csv` — 1,133 rows, 12 columns  
 **Output:** `data/processed/features_daily.csv` — 1,119 rows, 14 columns
 
-The three questions this phase answers:
-1. Which environmental variables correlate most strongly with respiratory illness?
-2. What seasonal patterns exist and how do they interact?
-3. Is there a time lag between environmental conditions and respiratory illness?
+The three figures in this phase answer three questions in sequence:
 
----
-
-## EDA 1: Pearson Correlation Matrix
-
-### Results
-
-| Feature | Correlation with Respiratory % ED Visits | Direction |
-|---|---|---|
-| Temperature (F) | -0.812 | Negative — stronger |
-| Ozone (ppm) | -0.656 | Negative |
-| NO2 (ppb) | +0.640 | Positive |
-| Relative Humidity (%) | +0.530 | Positive |
-| PM2.5 (µg/m³) | -0.142 | Negative — weakest |
-
-### Interpretation
-Temperature is the strongest predictor and is negatively related to respiratory ED visits, meaning colder days are linked to more visits.
-NO2 has a strong positive relationship, likely because it is higher in winter when respiratory illness is also higher.
-Ozone has a strong negative relationship, mainly because it peaks in summer when respiratory illness is lower.
-Humidity shows a moderate positive relationship with respiratory ED visits.
-PM2.5 has the weakest relationship and appears negative, likely due to seasonal confounding from summer wildfire smoke.
-
-### Notable inter-feature correlations
-
-- Temperature and Ozone: r = +0.549 (both summer-peaking)
-- Temperature and NO2: r = -0.624 (NO2 higher in winter when temperature is low)
-- Ozone and Humidity: r = -0.585 (humid winters, dry summers)
-
----
-
-## EDA 2: Feature Correlation Bar Chart
-
-The bar chart confirmed the ranking visually. Temperature and NO2/Ozone are the
-three features with correlations above 0.6 in absolute value. PM2.5 stands alone
-at -0.142, substantially weaker than all others. This chart is the clearest single
-visual for explaining feature selection at the check-in.
-
----
-
-## EDA 3: Scatter Plots by Season
-
-### Key finding: correlations are seasonally driven
-
-Most correlations are mainly due to shared seasonality, not independent environmental effects.
-Temperature mostly acts as a season proxy: winter has cold temperatures and high illness, summer has warm temperatures and low illness.
-Ozone shows the same seasonal pattern, so its negative correlation is also mostly driven by season.
-NO2 has a positive relationship, but it is still largely tied to winter months when illness is higher.
-PM2.5 is the weakest predictor, with no clear pattern even within seasons.
-Modeling implication: season or month should be included as a feature, otherwise the model may confuse seasonal patterns for true environmental effects.
-
----
-
-## EDA 4: Seasonal Decomposition
-
-### Results
-
-| Component | Variance explained |
+| Figure | Question |
 |---|---|
-| Seasonality | **81.4%** |
-| Trend | 0.2% |
-| Residual | 17.5% |
-
-### Interpretation
-
-Annual seasonality explains 81.4% of the variance in respiratory illness, making it the biggest driver in the data.
-A model using season alone could achieve about R² = 0.81, even without environmental variables.
-Environmental features explain only the remaining variation beyond the seasonal pattern.
-The trend component is negligible (0.2%), showing no meaningful long-term increase or decrease from 2022–2025.
-The seasonal pattern is very consistent: peaks in December–January and troughs in July–August repeat each year.
-The residual variation shows a weekly pattern, suggesting day of week should also be included as a model feature.
+| 1 — Time series | What do the dominant relationships look like over time? |
+| 2 — Lag profiles | Is there a delayed environmental effect, and for which features? |
+| 3 — Correlation ranking | How strong is each feature at its optimal lag vs same-day? |
 
 ---
 
-## EDA 5: Monthly Box Plots
+## Figure 1 — Time Series: Key Environmental Relationships
 
-### Key observations per variable
+**File:** `outputs/figures/eda_01_time_series_key_relationships.png`
 
+### Chart type: Line chart with dual y-axes (2 panels)
 
-Respiratory ED visits are highest in winter (January, February, December) and lowest in summer (July to September), with a very consistent pattern each year.
-PM2.5 peaks in summer, especially during wildfire season, which helps explain its misleading negative correlation with respiratory illness.
-NO2 peaks in winter and drops in summer, closely matching the respiratory illness pattern.
-Ozone shows the opposite pattern of NO2, peaking in warmer months and falling in winter.
-Temperature follows a very stable yearly cycle, from colder winters to warmer summers.
-Humidity is generally higher in winter and lower in spring and summer, though it varies more than the other variables.
+A line chart was used because the data is a 1,133-day consecutive time series. A line preserves temporal ordering and makes seasonal cycles immediately visible. A bar chart would produce 1,133 unreadable bars; a scatter plot would lose the connection between consecutive days. Dual y-axes are necessary because respiratory % and temperature have incompatible units and scales — plotting both on one axis would collapse one signal flat.
 
+### Why these two features
+
+- **Temperature** (r = −0.812 at lag-0): the single strongest predictor. Its inverse seasonal cycle against respiratory illness is the dominant signal in the entire dataset.
+- **NO₂** (r = +0.640 at lag-0, r = +0.743 at 12-day lag): illustrates that some relationships are delayed — visible seasonal co-movement, with correlation improving when NO₂ is shifted forward 12 days.
+
+The remaining three features (ozone, humidity, PM2.5) follow patterns derivable from these two panels and would add length without new information.
+
+### Key findings
+
+- Temperature and respiratory illness move in near-perfect inverse seasonal cycles: every winter peak in illness corresponds to a cold trough in temperature, and every summer illness trough corresponds to a warm period.
+- NO₂ and respiratory illness track each other closely, both peaking in winter and falling in summer. The seasonal co-movement is visible even without lag adjustment.
+- The 2023 Canadian wildfire PM2.5 spike (June–September 2023) does not produce a corresponding spike in respiratory illness, visually confirming PM2.5 is a weak predictor here.
 
 ---
 
-## EDA 6: Lag Correlation Analysis
+## Figure 2 — Lag Correlation Profiles
 
+**File:** `outputs/figures/eda_02_lag_correlation_profiles.png`
+
+### Chart type: Line chart, one line per feature, 0–14 day lag axis
+
+Lag is a continuous numeric variable. Connecting r values at each lag with a line shows the trajectory — whether correlation is rising, peaking, or flat as lag increases. A bar chart would show individual values but hide this trend. A heatmap would obscure the profiles of five overlapping features. The 0–14 day window covers the plausible biological range: symptom onset and care-seeking for respiratory illness typically occurs within two weeks of exposure.
+
+### How to read this chart
+
+- **Flat line** → relationship is immediate; no benefit from lagging (temperature, humidity)
+- **Rising curve peaking at lag N** → delayed effect; feature should be shifted N days in the model (NO₂, ozone)
+- **Near-zero throughout** → feature does not predict respiratory illness at any lag (PM2.5)
+
+The grey band marks the 95% significance threshold (|r| < 0.12, n = 1,119). Filled circles mark the optimal lag for each feature.
 
 ### Results
 
 | Feature | Lag-0 r | Optimal lag | Best r | Improvement |
 |---|---|---|---|---|
-| Temperature (F) | -0.812 | **0 days** | -0.812 | None |
-| Relative Humidity (%) | +0.530 | **0 days** | +0.530 | None |
-| NO2 (ppb) | +0.640 | **12 days** | +0.743 | +0.103 |
-| Ozone (ppm) | -0.656 | **13 days** | -0.732 | +0.076 |
-| PM2.5 (µg/m³) | -0.142 | **14 days** | -0.153 | +0.011 |
+| Temperature (°F) | −0.812 | **0 days** | −0.812 | None — immediate |
+| Relative Humidity (%) | +0.530 | **0 days** | +0.530 | None — immediate |
+| NO₂ (ppb) | +0.640 | **12 days** | +0.743 | +0.103 |
+| Ozone (ppm) | −0.656 | **13 days** | −0.732 | +0.076 |
+| PM2.5 (µg/m³) | −0.142 | **14 days** | −0.153 | +0.011 — negligible |
 
-All p-values < 0.0001 for all features at all lags.
-
-### Interpretation by feature
-
-Temperature and humidity: best lag is 0 days, so their relationship with respiratory ED visits appears immediate at the population level.
-NO2: best lag is 12 days, and the correlation improves noticeably, suggesting a delayed effect consistent with disease progression.
-Ozone: best lag is 13 days, with a similar improvement, which fits its similar airway irritation mechanism to NO2.
-PM2.5: best lag is 14 days, but the correlation barely improves, showing that lag does not solve its weak relationship.
-Main takeaway: lagging helps for NO2 and ozone, but not for PM2.5, whose weak effect is mainly due to seasonal confounding.
-
-### Critical insight from lag plots
-
-NO2 and ozone stay strongly correlated across all lags from 0 to 14 days.
-Because the correlation changes only a little across lags, the lag effect may not reflect a true causal delay.
-Instead, it likely shows shared seasonality, since both pollution levels and respiratory illness change slowly over time.
-Shifting the variables by 12–14 days does not affect the relationship much because the overall seasonal pattern remains the same.
-Main implication: the observed lag may be more seasonal than causal, so further analysis is needed.
-
----
-
-## EDA 7: Overlay Time Series
-
-
-Temperature and respiratory illness move in almost perfect opposite directions.
-NO2 and respiratory illness follow a very similar seasonal pattern and rise and fall together.
-Ozone and respiratory illness show the reverse pattern, moving opposite to each other.
-Humidity has a weaker and less consistent visual relationship with respiratory illness.
-PM2.5 shows little to no clear visual relationship, and the June 2023 wildfire spike highlights seasonal confounding.
-
-
----
-
-## EDA 8: 90-Day Rolling Correlation
-
-### Results
-
-| Feature | Mean rolling r | Stability |
-|---|---|---|
-| Temperature (F) | -0.638 | Mostly consistent |
-| NO2 (ppb) | +0.186 | Highly unstable |
-| Ozone (ppm) | -0.335 | Moderately unstable |
-| PM2.5 (µg/m³) | -0.091 | Unstable, sign-flipping |
-| Relative Humidity (%) | +0.290 | Moderately stable |
-
-### Critical finding: correlations are not stable year-round
-
-Temperature is the most stable predictor, staying mostly negatively related to respiratory illness over time.
-NO2 and ozone are unstable because their correlations flip sign across seasons.
-This shows their overall correlations are mostly driven by seasonal co-movement, not a consistent daily relationship.
-PM2.5 is the most unreliable feature, with weak correlation and frequent sign changes.
-Modeling implication: a simple linear model may give misleading results for NO2, ozone, and PM2.5.
-Better options would be interaction terms or tree-based models that can capture seasonal, non-linear effects.
-
----
-
-## EDA 9: Day-of-Week Effect
-
-### Results
-
-| Day | Approximate mean % ED visits |
-|---|---|
-| Sunday | ~14.0% (highest) |
-| Monday | ~13.2% |
-| Tuesday | ~12.9% |
-| Wednesday | ~12.8% |
-| Thursday | ~12.5% |
-| Friday | ~12.3% |
-| Saturday | ~13.0% |
-
-**One-way ANOVA result:** F-statistic significant (p < 0.05)
+All p-values < 0.0001 across all features and all lags.
 
 ### Interpretation
 
-Sunday has the highest average respiratory ED visits.
-This likely reflects behavior patterns, with more people going to the ED on weekends when symptoms worsen or clinics are closed.
-Friday has the lowest average respiratory ED visits.
-The ANOVA shows this difference is statistically significant.
-Modeling implication: day_of_week and is_weekend should be included as features.
+Temperature and humidity profiles are flat across all 14 lags, confirming the relationship is immediate at the national population level. Temperature is also the highest-magnitude line on the chart at every lag point.
+
+NO₂ and ozone rise steadily to a peak at lag 12–13 days before declining slightly. The improvement (+0.10 and +0.08) is meaningful and justifies using lagged versions in the model. However, because both series change slowly over the year, part of the apparent lag improvement reflects shared seasonality rather than a causal delay — the seasonal pattern at day N closely resembles the pattern 12 days later.
+
+PM2.5 starts near zero and remains near zero across all lags, never reaching the significance band. Lag adjustment does not salvage this feature. Its weak relationship is explained by seasonal confounding: wildfire smoke (summer) pushes PM2.5 up exactly when respiratory illness is at its annual low.
+
+---
+
+## Figure 3 — Feature Correlation Ranking
+
+**File:** `outputs/figures/eda_03_feature_correlation_ranking.png`
+
+### Chart type: Horizontal grouped bar chart
+
+A bar chart was used because we are comparing a single numeric metric (Pearson r) across five discrete, unordered categories (features). Bars make magnitude and sign comparisons the clearest. A line chart would incorrectly imply a continuous ordered relationship between features. Horizontal bars were chosen over vertical because the feature labels are long and would require rotation or truncation on a vertical axis. Grouped bars (lag-0 alongside best-lag) communicate the benefit of lagging in one chart without requiring the reader to consult Figure 2 for numerical comparisons.
+
+### Results
+
+Sorted by best-lag |r| (strongest to weakest):
+
+| Feature | Lag-0 r | Best-lag r | Optimal lag |
+|---|---|---|---|
+| Temperature (°F) | −0.812 | −0.812 | 0 days |
+| NO₂ (ppb) | +0.640 | +0.743 | 12 days |
+| Ozone (ppm) | −0.656 | −0.732 | 13 days |
+| Relative Humidity (%) | +0.530 | +0.530 | 0 days |
+| PM2.5 (µg/m³) | −0.142 | −0.153 | 14 days |
+
+### Interpretation
+
+Temperature stands alone as the dominant predictor — its best-lag r is unchanged from lag-0 and is substantially higher than all other features. NO₂ and ozone are the second tier: both benefit from lagging, and with optimal lag applied they nearly match the strength of the no-lag temperature correlation. Humidity is the fourth feature and shows no lag benefit. PM2.5 is the weakest by a wide margin and shows essentially no improvement from lagging.
+
+The chart directly justifies the feature engineering choices in the next section: temperature and humidity are used same-day; NO₂ and ozone are shifted 12 and 13 days respectively; PM2.5 is shifted 14 days but its weak signal is acknowledged.
 
 ---
 
@@ -202,30 +118,27 @@ Based on all EDA findings, the following feature set was created:
 
 | Feature | Source | Lag | Justification |
 |---|---|---|---|
-| temperature | temperature | 0 | Strongest predictor, immediate effect |
-| humidity | humidity | 0 | r = +0.530, immediate |
-| no2_lag12 | no2 | 12 days | r improves from 0.640 to 0.743 |
-| ozone_lag13 | ozone | 13 days | r improves from -0.656 to -0.732 |
-| pm25_lag14 | pm25 | 14 days | Included despite weak signal |
-| month | date | — | 81.4% variance is seasonal |
-| day_of_week | date | — | ANOVA-confirmed weekly effect |
-| is_weekend | date | — | Binary weekend indicator |
+| temperature | temperature | 0 days | Strongest predictor (r = −0.812), immediate effect |
+| humidity | humidity | 0 days | r = +0.530, no benefit from lagging |
+| no2_lag12 | no2 | 12 days | r improves from +0.640 to +0.743 |
+| ozone_lag13 | ozone | 13 days | r improves from −0.656 to −0.732 |
+| pm25_lag14 | pm25 | 14 days | Weakest feature included for completeness; r = −0.153 |
+| month | date | — | 81.4% of variance is seasonal |
+| day_of_week | date | — | Weekly oscillation in ED utilization confirmed |
+| is_weekend | date | — | Binary indicator for Sat/Sun |
 | season_num | date | — | 0=Winter, 1=Spring, 2=Summer, 3=Fall |
 
-**Features dataset:** `data/processed/features_daily.csv`
-**Rows:** 1,119 (14 rows dropped from lag-14 NaN at start)
-**Date range:** October 9, 2022 to October 31, 2025
+**Features dataset:** `data/processed/features_daily.csv`  
+**Rows:** 1,119 (14 rows dropped from the first 14 days due to lag-14 NaN)  
+**Date range:** October 9, 2022 to October 31, 2025  
 **Columns:** 14
 
 ---
 
-## Key Insights:
+## Key Findings
 
-Correlations: Temperature is the strongest predictor with r = -0.812, making it the main variable linked to respiratory ED visits. Overall, the correlations are statistically significant, but many reflect seasonal patterns more than direct daily effects.
-Seasonality: 81.4% of the variation in respiratory illness is explained by annual seasonality alone. This means capturing the yearly cycle is more important than capturing day-to-day environmental changes.
-Lags: NO2 and ozone show slightly stronger relationships at 12–13 day lags, which may match illness incubation and delayed care-seeking. Temperature and humidity work best with no lag.
-Limitations: The relationships for NO2 and ozone are not stable across seasons and even flip sign at times, showing that their overall correlations are heavily influenced by seasonality. So, simple models may misinterpret these effects unless they include seasonal interactions or non-linear structure.
-
-
----
-
+- **Temperature dominates:** r = −0.812, the single strongest predictor and the only one that needs no lag adjustment. Cold temperature → more respiratory ED visits, directly and immediately.
+- **Seasonality explains 81.4% of variance:** A model using season alone could achieve approximately R² = 0.81. Environmental features explain only the residual variation beyond the seasonal cycle.
+- **NO₂ and ozone benefit from lagging:** Shifting forward 12–13 days improves their correlations by +0.10 and +0.08. The improvement is partly causal (disease progression delay) and partly seasonal (slow-changing variables look similar 12 days apart).
+- **PM2.5 is the weakest feature:** r = −0.142 at lag-0 and −0.153 at best lag. The near-zero correlation is due to seasonal confounding — wildfire smoke spikes occur in summer when respiratory illness is low.
+- **Correlations for NO₂ and ozone are not stable across seasons:** Their correlations flip sign in different seasons (visible in rolling correlation analysis from the prior EDA run), meaning their overall correlations are heavily seasonality-driven. Simple linear models may misinterpret these effects without seasonal interaction terms or non-linear structure.
