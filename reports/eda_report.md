@@ -11,7 +11,7 @@ The analysis was conducted on the cleaned master dataset of 1,133 daily rows
 spanning September 25, 2022 to October 31, 2025.
 
 **Input:** `data/processed/master_daily.csv` — 1,133 rows, 12 columns  
-**Output:** `data/processed/features_daily.csv` — 1,119 rows, 14 columns
+**Output:** `data/processed/features_daily.csv` — 1,119 rows, 16 columns
 
 The three figures in this phase answer three questions in sequence:
 
@@ -131,7 +131,7 @@ Based on all EDA findings, the following feature set was created:
 **Features dataset:** `data/processed/features_daily.csv`  
 **Rows:** 1,119 (14 rows dropped from the first 14 days due to lag-14 NaN)  
 **Date range:** October 9, 2022 to October 31, 2025  
-**Columns:** 14
+**Columns:** 16 (includes `month_sin` and `month_cos` cyclic encodings)
 
 ---
 

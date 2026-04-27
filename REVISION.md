@@ -245,3 +245,22 @@ Three output figures: actual vs predicted time series (XGBoost, 80/20 split), fe
 **Where:** Entire file  
 **Change:** Replaced March check-in content (OLS baseline) with full April report covering all three models. Includes per-fold CV tables, feature importance tables, model comparison, and a detailed explanation of why CV R² is negative and why this is attributable to seasonal distribution shift rather than model failure.  
 **Why:** The March report described two OLS models with a single-split evaluation that is no longer used. The April report reflects the new three-model setup and provides the interpretation required by the check-in rubric.
+
+---
+
+## models.ipynb + reports/modeling_report.md
+
+### 23. Switched primary evaluation from 80/20 split to leave-last-year-out holdout
+
+**Where:** `models.ipynb` cell 14 (Figure 1 / primary evaluation); `reports/modeling_report.md` overview and results sections  
+**Change:** Replaced the row-percentage 80/20 holdout with a date-anchored split at 2024-10-31.  
+
+| Partition | Date range | Days |
+|---|---|---|
+| Training | Oct 2022 – Oct 2024 | 754 |
+| Test | Nov 2024 – Oct 2025 | 365 (all 12 months) |
+
+Holdout results: Ridge R²=0.687 RMSE=2.394pp; Random Forest R²=0.570; XGBoost R²=0.548.  
+Best model changed from XGBoost (by CV) to Ridge (by holdout).  
+
+**Why:** An 80/20 row-percentage cut falls in March 2025, placing the entire test set in spring/summer. This produces a negative test R² (−0.088 for XGBoost) due to the same seasonal distribution shift that affects CV fold 1. The leave-last-year-out split ensures the test set covers all 12 months, making R² a valid measure of skill across all seasonal regimes. The CV tables remain as a robustness diagnostic.
