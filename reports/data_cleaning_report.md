@@ -1,8 +1,5 @@
 # Data Cleaning Report
 ## Respiratory Disease Prediction from Environmental Factors
-**Team:** Gowrav Lakshmipathy | Priya Dilip Bajaria | Nandini Nandan Narvekar
-
----
 
 ## Overview
 
@@ -39,7 +36,7 @@ After cleaning, the final study period runs from September 25, 2022 to October 3
 
 The 99.5th percentile cap of 38.00 µg/m³ applies at the station-reading level, not the national
 daily average level. After averaging across 2,000+ stations, the national daily max is 21.15 µg/m³.
-The cap affected 11,344 out of 2.9M rows — 0.4% of station readings. The 2023 Canadian wildfire
+The cap affected 11,344 out of 2.9M rows 0.4% of station readings. The 2023 Canadian wildfire
 spike visible in the before/after plot is preserved in the cleaned data, confirming the percentile
 approach was correct over a hard threshold.
 
@@ -52,7 +49,7 @@ approach was correct over a hard threshold.
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
 | Drop Arithmetic Mean < 0 | 2,694 | Physically impossible. NO2 concentration cannot be negative. |
-| Cap at 99.5th percentile (32.96 ppb) | 2,219 station readings | Standard tail cleanup. No meaningful impact — max 64 ppb was clean. |
+| Cap at 99.5th percentile (32.96 ppb) | 2,219 station readings | Standard tail cleanup. No meaningful impact  max 64 ppb was clean. |
 | Parse dates with format='mixed' | All rows | Same mixed format issue as PM2.5 |
 | Group by date: national daily mean | 562K → 1,133 rows | One national value per day |
 | No gap interpolation needed | 0 gaps found | No missing days in study period |
@@ -80,8 +77,8 @@ Unlike PM2.5, NO2 is measured hourly using a 1-hour sample duration. As a result
 
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
-| Drop Arithmetic Mean < 0 | 18 | Physically impossible. Profiling found only 18 — cleanest pollutant dataset. |
-| Cap at 99.5th percentile (0.0623 ppm) | 5,540 station readings | Standard tail cleanup. Max 0.136 ppm was real — no hard threshold needed. |
+| Drop Arithmetic Mean < 0 | 18 | Physically impossible. Profiling found only 18 cleanest pollutant dataset. |
+| Cap at 99.5th percentile (0.0623 ppm) | 5,540 station readings | Standard tail cleanup. Max 0.136 ppm was real no hard threshold needed. |
 | Parse dates with format='mixed' | All rows | Same mixed format issue as PM2.5 and NO2 |
 | Group by date: national daily mean | 1.4M → 1,133 rows | One national value per day |
 | No gap interpolation needed | 0 gaps found | No missing days in study period |
@@ -109,7 +106,7 @@ Ozone is reported as an 8-hour running average, so each station can contribute s
 
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
-| Drop values below -80°F | 1 | Sentinel value at -1,177.67°F — firmware error code. Below absolute zero (-459.67°F). |
+| Drop values below -80°F | 1 | Sentinel value at -1,177.67°F firmware error code. Below absolute zero (-459.67°F). |
 | Drop values above 140°F | 79 | Surface radiant heat artifacts. Sensors sited on hot rooftops. Above any recorded air temperature (max 130°F). |
 | No unit conversion | 0 | Profiling confirmed 100% Degrees Fahrenheit across all rows. |
 | Parse dates with format='mixed' | All rows | Same mixed format issue as pollutants |
@@ -141,7 +138,7 @@ For temperature, we used physical limits instead of percentile capping because u
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
 | Filter to Relative Humidity rows only | 43,518 Dew Point rows removed | Dew Point values are in degrees (°F/°C), not percent. Averaging with RH % produces meaningless values. |
-| Drop values above 100% | 2 | Physically impossible. Sensor calibration drift — 0.0004% of RH rows. |
+| Drop values above 100% | 2 | Physically impossible. Sensor calibration drift 0.0004% of RH rows. |
 | Drop values below 0% | 0 | Profiling confirmed zero negatives in RH-only rows. The -25% minimum in the raw profile came entirely from Dew Point rows. |
 | Parse dates with format='mixed' | All rows | Same mixed format issue |
 | Group by date: national daily mean | 535,740 → 1,133 rows | One national RH value per day |
@@ -156,7 +153,6 @@ For temperature, we used physical limits instead of percentile capping because u
 | Mean | 60.18% |
 | Std | 7.21% |
 | Missing values | 0 |
-| Validation | PASS |
 
 ### Notes
 
@@ -170,7 +166,7 @@ Filtering to Relative Humidity was the most important cleaning step for this dat
 
 | Operation | Rows affected | Justification from profiling |
 |---|---|---|
-| Filter pathogen == 'ARI' | ~195,000 rows removed | ARI (Acute Respiratory Illness) is the broadest category. Individual pathogens (COVID, Flu, RSV) are subsets — using them alongside ARI would double-count. |
+| Filter pathogen == 'ARI' | ~195,000 rows removed | ARI (Acute Respiratory Illness) is the broadest category. Individual pathogens (COVID, Flu, RSV) are subsets using them alongside ARI would double-count. |
 | Filter geography == 'United States' | Exact match used | Profiling confirmed 'United States' is the correct exact label. Contains() match returned 'Massachusetts' as false positive. |
 | No value cleaning | 0 | Profiling found zero invalid values: 0 below 0%, 0 above 100%, 0 IQR outliers. |
 | No interpolation of missing days | 0 missing days found | Missing respiratory data may be real reporting failures, not sensor gaps. Interpolating the target variable would introduce false signal. |
@@ -208,7 +204,7 @@ Only dates present in all six datasets with non-null values are included.
 | Columns | 12 (date, 6 value columns, 5 station count columns) |
 | Missing values | 0 |
 
-### Why 1,133 rows
+###
 
 The study period runs from September 25, 2022 to October 31, 2025. Since both the start date and end date are included, this gives a total of 1,133 calendar days, which is why the inner join also produced 1,133 rows.
 
@@ -247,9 +243,7 @@ All six variables were plotted across the full study period to visually check th
 The second plot compares the PM2.5 series before and after cleaning. The main June to September 2023 wildfire spike is clearly visible in both versions, which shows that the cleaning process preserved this real pollution event. At the same time, the cleaned series has a slightly smoother baseline because the negative station readings and a small number of extreme values were removed.
 
 
----
-
-## What Was Not Applied and Why
+## 
 
 | Operation skipped | Reason |
 |---|---|
@@ -277,14 +271,14 @@ The second plot compares the PM2.5 series before and after cleaning. The main Ju
 
 ## Output Files
 
-| File | Size | Contents |
+| File | | Contents |
 |---|---|---|
-| data/processed/pm25_daily.csv | 37.6 KB | Daily national PM2.5 mean + station count |
-| data/processed/no2_daily.csv | 36.5 KB | Daily national NO2 mean + station count |
-| data/processed/ozone_daily.csv | 39.7 KB | Daily national Ozone mean + station count |
-| data/processed/temperature_daily.csv | 36.5 KB | Daily national temperature mean + station count |
-| data/processed/humidity_daily.csv | 36.5 KB | Daily national RH mean + station count |
-| data/processed/respiratory_daily.csv | 18.5 KB | Daily US ARI percent ED visits |
-| data/processed/master_daily.csv | 144.5 KB | Merged dataset, 12 columns, 1,133 rows |
+| data/processed/pm25_daily.csv | | Daily national PM2.5 mean + station count |
+| data/processed/no2_daily.csv |  | Daily national NO2 mean + station count |
+| data/processed/ozone_daily.csv | | Daily national Ozone mean + station count |
+| data/processed/temperature_daily.csv |  | Daily national temperature mean + station count |
+| data/processed/humidity_daily.csv |  | Daily national RH mean + station count |
+| data/processed/respiratory_daily.csv |  | Daily US ARI percent ED visits |
+| data/processed/master_daily.csv |  | Merged dataset, 12 columns, 1,133 rows |
 
 -

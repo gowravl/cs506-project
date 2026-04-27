@@ -1,13 +1,9 @@
 # Modeling Report
 ## Respiratory Disease Prediction from Environmental Factors
-**Team:** Gowrav Lakshmipathy | Priya Dilip Bajaria | Nandini Nandan Narvekar
-
----
-
 ## Overview
 
-**Input:** `data/processed/features_daily.csv` — 1,119 rows × 16 columns  
-**Target:** `pct_respiratory` — daily % of US ED visits attributed to ARI (range 7.09% – 26.58%)  
+**Input:** `data/processed/features_daily.csv` 1,119 rows × 16 columns  
+**Target:** `pct_respiratory` daily % of US ED visits attributed to ARI (range 7.09% – 26.58%)  
 **Primary evaluation:** Leave-last-year-out holdout (train Oct 2022 – Oct 2024; test Nov 2024 – Oct 2025)  
 **Robustness check:** 5-fold TimeSeriesSplit cross-validation
 
@@ -19,11 +15,9 @@ Three models were trained and compared:
 | Random Forest | Tree ensemble | Raw `month`, `season_num` |
 | XGBoost | Gradient boosting | Same as Random Forest |
 
----
+## 
 
-## What We Are Predicting
-
-`pct_respiratory` is the daily percentage of US emergency department visits classified as Acute Respiratory Illness (ARI), from CDC NSSP. Percentage normalises for hospital capacity variation over time. The target ranges from 7.09% in summer to 26.58% in winter — a 3.7× seasonal swing.
+`pct_respiratory` is the daily percentage of US emergency department visits classified as Acute Respiratory Illness (ARI), from CDC NSSP. Percentage normalises for hospital capacity variation over time. The target ranges from 7.09% in summer to 26.58% in winter  a 3.7× seasonal swing.
 
 ---
 
@@ -40,11 +34,11 @@ The dataset is split at October 31, 2024:
 
 Training on 2 full annual cycles means the model has seen every season before testing. The test set covers the full seasonal range (fall → winter peak → spring → summer), so R² is measured across all seasonal regimes and is not biased toward any single season.
 
-An 80/20 cut by row count would place the split in March 2025, giving a test set of spring/summer only — the same seasonal mismatch that caused the March baseline's test R² of −0.70. The leave-last-year-out split avoids this.
+An 80/20 cut by row count would place the split in March 2025, giving a test set of spring/summer only the same seasonal mismatch that caused the March baseline's test R² of −0.70. The leave-last-year-out split avoids this.
 
 ### Robustness Check: 5-Fold TimeSeriesSplit
 
-`TimeSeriesSplit(n_splits=5)` produces 5 expanding folds. Each fold trains on all data prior to the test window. Fold 1 trains on only ~6 months of fall/winter data before testing on spring/summer — essentially extrapolation to an unseen season. Results from all 5 folds are reported as a diagnostic.
+`TimeSeriesSplit(n_splits=5)` produces 5 expanding folds. Each fold trains on all data prior to the test window. Fold 1 trains on only ~6 months of fall/winter data before testing on spring/summer essentially extrapolation to an unseen season. Results from all 5 folds are reported as a diagnostic.
 
 | Fold | Approx. train dates | Approx. test dates | Seasons in test |
 |---|---|---|---|
@@ -56,7 +50,7 @@ An 80/20 cut by row count would place the split in March 2025, giving a test set
 
 ---
 
-## Primary Results — Leave-Last-Year-Out Holdout
+## Primary Results Leave-Last-Year-Out Holdout
 
 | Model | Test R² | RMSE (pp) | MAE (pp) |
 |---|---|---|---|
@@ -64,7 +58,7 @@ An 80/20 cut by row count would place the split in March 2025, giving a test set
 | Random Forest | 0.570 | 2.806 | 2.126 |
 | XGBoost | 0.548 | 2.875 | 2.154 |
 
-**Best model: Ridge Regression** — highest test R² (0.687), lowest RMSE (2.394 pp), lowest MAE (1.880 pp).
+**Best model: Ridge Regression** highest test R² (0.687), lowest RMSE (2.394 pp), lowest MAE (1.880 pp).
 
 Ridge outperforms the tree models because the dominant signal in this dataset is the seasonal cycle, which Ridge captures efficiently through the cyclic month features (`month_sin`, `month_cos`). The tree models are better equipped for non-linear interactions but overfit to year-specific noise without adding interpretable seasonal structure.
 
@@ -72,7 +66,7 @@ RMSE = 2.39 pp on a target range of 7–27% is a 12% relative error at the midpo
 
 ---
 
-## Model A — Ridge Regression
+## Model A Ridge Regression
 
 **Feature set:** `temperature`, `humidity`, `no2_lag12`, `ozone_lag13`, `pm25_lag14`, `month_sin`, `month_cos`, `day_of_week`, `is_weekend`
 
@@ -80,7 +74,7 @@ RMSE = 2.39 pp on a target range of 7–27% is a 12% relative error at the midpo
 
 **Alpha selection:** RidgeCV performs internal LOO-CV across [0.1, 1, 10, 100, 1000].
 
-**Why cyclic encoding:** Raw month integer (1–12) treats January and December as maximally distant, creating a discontinuity at the year boundary. Encoding as `sin(2π·month/12)` and `cos(2π·month/12)` maps the 12-month cycle onto a unit circle so the model learns that December and January are adjacent.
+**Cyclic encoding:** Raw month integer (1–12) treats January and December as maximally distant, creating a discontinuity at the year boundary. Encoding as `sin(2π·month/12)` and `cos(2π·month/12)` maps the 12-month cycle onto a unit circle so the model learns that December and January are adjacent.
 
 ### Cross-Validation Results (Robustness Diagnostic)
 
@@ -99,7 +93,7 @@ Temperature dominates all other features. The cyclic month terms (`month_sin`, `
 
 ---
 
-## Model B — Random Forest
+## Model B Random Forest
 
 **Feature set:** `temperature`, `humidity`, `no2_lag12`, `ozone_lag13`, `pm25_lag14`, `month`, `day_of_week`, `is_weekend`, `season_num`
 
@@ -133,7 +127,7 @@ Temperature dominates all other features. The cyclic month terms (`month_sin`, `
 
 ---
 
-## Model C — XGBoost
+## Model C XGBoost
 
 **Feature set:** Same as Random Forest.
 
@@ -165,9 +159,6 @@ Temperature dominates all other features. The cyclic month terms (`month_sin`, `
 | is_weekend | 0.033 |
 | humidity | 0.032 |
 
----
-
-## Why CV R² Is Negative — And Why This Is Expected
 
 The mean CV R² values are negative. This is a consequence of the fold structure, not model failure.
 
@@ -190,7 +181,7 @@ The CV results confirm the models work when trained on sufficient data, and diag
 
 | File | Contents |
 |---|---|
-| `outputs/figures/model_01_actual_vs_predicted.png` | Ridge actual vs predicted — full time series, leave-last-year-out holdout |
+| `outputs/figures/model_01_actual_vs_predicted.png` | Ridge actual vs predicted full time series, leave-last-year-out holdout |
 | `outputs/figures/model_02_feature_importance.png` | RF and XGBoost feature importances side by side |
 | `outputs/figures/model_03_cv_fold_r2.png` | Per-fold CV R² for all three models |
 
@@ -200,7 +191,7 @@ The CV results confirm the models work when trained on sufficient data, and diag
 
 - **Ridge Regression is the best model** by holdout test R² (0.687), RMSE (2.394 pp), and MAE (1.880 pp). The linear seasonal structure captured by cyclic month encoding (`month_sin`, `month_cos`) generalises better than tree-based non-linear fits when the test set covers all seasons.
 - **Temperature is the dominant feature** in all three models: 44% of RF importance, 27% of XGBoost gain, largest coefficient in Ridge. This matches the EDA finding of r = −0.812.
-- **Ozone (lag 13d) is the second most important feature** in both tree models — its lagged signal captures a different pattern than same-day ozone.
-- **PM2.5 and is_weekend are the least important features** — confirming the EDA finding that PM2.5 is a weak predictor.
+- **Ozone (lag 13d) is the second most important feature** in both tree models its lagged signal captures a different pattern than same-day ozone.
+- **PM2.5 and is_weekend are the least important features** confirming the EDA finding that PM2.5 is a weak predictor.
 - **Holdout R² = 0.687** means the best model explains 68.7% of variance in respiratory illness when evaluated on a full year of unseen data spanning all seasons.
-- **Negative CV R² is driven by seasonal distribution shift in early folds**, not model incompetence. When the test fold covers the same season as training data, all three models achieve near-zero or positive R². The leave-last-year-out holdout — which ensures a balanced test set — confirms the models are performing correctly.
+- **Negative CV R² is driven by seasonal distribution shift in early folds**, not model incompetence. When the test fold covers the same season as training data, all three models achieve near-zero or positive R². The leave-last-year-out holdout which ensures a balanced test set confirms the models are performing correctly.
