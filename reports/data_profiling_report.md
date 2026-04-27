@@ -1,8 +1,6 @@
 # Data Profiling Report
 ## Respiratory Disease Prediction from Environmental Factors
-**Team:** Gowrav Lakshmipathy | Priya Dilip Bajaria | Nandini Nandan Narvekar
 
----
 
 ## Overview
 
@@ -49,7 +47,7 @@ Every cleaning step done later in Phase 2 is based on observations and dataset a
 | Mean | 7.722 |
 | Std | 6.623 |
 
-### Issues Found
+### Issues
 
 | Issue | Count | Assessment |
 |---|---|---|
@@ -83,6 +81,7 @@ Every cleaning step done later in Phase 2 is based on observations and dataset a
 ## Dataset 2 - NO2 (Nitrogen Dioxide)
 
 **Source:** EPA AQS `daily_42602_YYYY.csv` (2022, 2023, 2024, 2025)
+
 **Expected format:** One row per monitoring station per hour, `Arithmetic Mean` in ppb
 
 ### Raw Profile
@@ -105,7 +104,7 @@ Every cleaning step done later in Phase 2 is based on observations and dataset a
 | Mean | 7.582 |
 | Std | 6.653 |
 
-### Issues Found
+### Issues
 
 | Issue | Count | Assessment |
 |---|---|---|
@@ -134,6 +133,7 @@ Also, NO₂ monitoring stations are mostly located in urban areas, especially ne
 ## Dataset 3 - Ozone
 
 **Source:** EPA AQS `daily_44201_YYYY.csv` (2022, 2023, 2024, 2025)
+
 **Expected format:** One row per monitoring station per 8-hour window, `Arithmetic Mean` in ppm
 
 ### Raw Profile
@@ -156,7 +156,7 @@ Also, NO₂ monitoring stations are mostly located in urban areas, especially ne
 | Mean | 0.033 |
 | Std | 0.011 |
 
-### Issues Found
+### Issues
 
 | Issue | Count | Assessment |
 |---|---|---|
@@ -167,9 +167,7 @@ Also, NO₂ monitoring stations are mostly located in urban areas, especially ne
 
 ### Important Structural Note
 
-Ozone is measured using an 8-hour running average, which means each station reports multiple overlapping 8-hour readings within a single day. When we group the data by date, we end up averaging across all these overlapping time windows as well as across all stations.
-
-It’s important to note that all three air quality variables-PM2.5, NO₂, and ozone-are measured over different time intervals. This difference in measurement basis should be clearly mentioned in the methodology.
+Ozone is measured using an 8-hour running average, which means each station reports multiple overlapping 8-hour readings within a single day. When we group the data by date, we end up averaging across all these overlapping time windows as well as across all stations. All three air quality variables-PM2.5, NO₂, and ozone-are measured over different time intervals. 
 
 ### Cleaning Decisions
 
@@ -184,6 +182,7 @@ It’s important to note that all three air quality variables-PM2.5, NO₂, and 
 ## Dataset 4 - Temperature
 
 **Source:** EPA AQS `daily_TEMP_YYYY.csv` (2022, 2023, 2024, 2025)
+
 **Expected format:** One row per monitoring station per hour, `Arithmetic Mean` in degrees
 
 ### Raw Profile
@@ -208,24 +207,19 @@ It’s important to note that all three air quality variables-PM2.5, NO₂, and 
 | Mean | 57.790 |
 | Std | 19.294 |
 
-### Issues Found
+### Issues
 
 | Issue | Count | Assessment |
 |---|---|---|
-| Value at -1,177.67°F | 1 | Sentinel value from instrument firmware indicating a failed reading. Absolute zero is -459.67°F so this is Not possible. |
-| Values above 140°F | 79 | Some of the extreme temperature values are likely due to surface radiant heat effects. EPA monitors are often placed on rooftops or near equipment that gives off heat, so the sensors can end up capturing that surface heat instead of the actual ambient air temperature. For context, the highest recorded air temperature on Earth is 130°F (Death Valley, 2021), which helps show that some unusually high readings in the data may not reflect true air conditions. |
+| Value at -1,177.67°F | 1 | Sentinel value from instrument firmware indicating a failed reading. Absolute zero is -459.67°F so this is not possible. |
+| Values above 140°F | 79 | Some of the extreme temperature values are likely due to surface radiant heat effects. EPA monitors are often placed on rooftops or near equipment that gives off heat, so the sensors can end up capturing that surface heat instead of the actual ambient air temperature. For context, the highest recorded air temperature on Earth is 130°F which helps show that some unusually high readings in the data may not reflect true air conditions. |
 | Unit question | Resolved | 100% Fahrenheit confirmed by `Units of Measure` column. No conversion needed. |
 
-### Why This Matters
 
 The minimum value of -1,177°F (Not possible) only appears in 1 row out of 1,184,025.
 Even though it’s just a single value, keeping it would distort the national daily average for that particular day, so it still needs to be handled.
 Similarly, the 79 high temperature readings in the range of 141–160°F are actual sensor readings, but they likely capture surface heat rather than true air temperature. If left in the data, they could slightly push up the average temperatures during summer.
 
-### Key Insight
-
-Using a generic 99.5th percentile cap would not have caught the -1,177°F value, since percentile-based methods only remove extreme values from the upper end.
-This is a clear example of why doing profiling first was important. It showed that we needed a different cleaning approach-setting hard physical limits-something a standard pipeline would have likely missed.
 
 ### Cleaning Decisions
 
@@ -241,6 +235,7 @@ This is a clear example of why doing profiling first was important. It showed th
 ## Dataset 5 - Relative Humidity
 
 **Source:** EPA AQS `daily_RH_DP_YYYY.csv` (2022, 2023, 2024, 2025)
+
 **Expected format:** Mixed file containing both Relative Humidity (%) and Dew Point readings
 
 ### Raw Profile (before parameter filter)
@@ -271,7 +266,7 @@ This is a clear example of why doing profiling first was important. It showed th
 | Values below 0% | 0 |
 | Values above 100% | 2 |
 
-### Issues Found
+### Issues
 
 | Issue | Count | Assessment |
 |---|---|---|
@@ -281,7 +276,6 @@ This is a clear example of why doing profiling first was important. It showed th
 | Min -25.0 in raw profile | From dew point rows | Completely resolved by filtering to Relative Humidity only. |
 | Outliers by IQR | 0 | Cleanest outlier profile of all five EPA datasets. |
 
-### Key Insight
 
 The -25% minimum in the full profile comes entirely from Dew Point rows, not from any error in the Relative Humidity sensors. Once we filter to just Relative Humidity rows, the problem goes away - no additional value-level cleaning is needed, aside from the two rows that exceed 100%.
 
@@ -298,6 +292,7 @@ The -25% minimum in the full profile comes entirely from Dew Point rows, not fro
 ## Dataset 6 - NSSP Respiratory (CDC)
 
 **Source:** CDC NSSP (Centers for Disease Control and Prevention National Syndromic Surveillance Program) `nssp_respiratory.csv`
+
 **Expected format:** Daily rows with pathogen, geography, and percent_visits
 
 ### Raw Profile
@@ -336,7 +331,6 @@ The -25% minimum in the full profile comes entirely from Dew Point rows, not fro
 
 ### Time Series Visual Findings
 
-The raw time series plot revealed:
 - **Clear annual seasonality** - strong peaks during winter (December–January) and low points in summer (July–August)
 - **Three complete seasonal cycles** - covering 2022–23, 2023–24, and 2024–25
 - **Consistent amplitude** - winter peaks are around 25–26%, while summer lows drop to about 7–8%
@@ -354,9 +348,9 @@ The NSSP data starts on September 25, 2022, which is later than the EPA datasets
 Because of this, after performing the inner join, the final combined dataset will also start from September 25, 2022. This means we lose about 9 months of EPA data.
 This is a limitation of the data itself and can’t really be fixed unless we use a different dataset for respiratory outcomes.
 
-### Cleaning Decisions
+### Cleaning Steps
 
-| Decision | Justification |
+| Step | Justification |
 |---|---|
 | Filter to ARI pathogen only | ARI (Acute Respiratory Illness) is the broadest category covering all respiratory diagnoses. Using individual pathogen rows (COVID, Flu, RSV) would cause double-counting since ARI already includes them. |
 | Filter to United States geography | National aggregate provides maximum completeness and avoids state-level reporting variations. |
@@ -403,8 +397,7 @@ This is a limitation of the data itself and can’t really be fixed unless we us
 | Humidity | 1-hour readings | 24 readings per station per day averaged |
 | Respiratory | Daily aggregate | Already a daily value, no further aggregation |
 
-### Key Insights Discovered During Profiling
-
+### Findings
 1. **Extreme low temperature needed hard bounds**: The -1,177°F reading sits way below realistic values. A 99.5th percentile filter only removes extreme high values, so this kind of error would have slipped through. Hard physical limits were needed to catch it-otherwise it would have skewed the national daily temperature average.
 
 2. **Negative humidity values were misleading**: All negative values came from Dew Point rows. Once we focused only on Relative Humidity, there were no negative numbers left. That -25% minimum in the raw profile looked alarming but was completely misleading without filtering by parameter.
