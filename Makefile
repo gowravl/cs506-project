@@ -25,7 +25,12 @@ FIGURES  := outputs/figures/eda_01_time_series_key_relationships.png \
 all: install profiling cleaning eda models
 
 ## Quick start after cloning (processed CSVs are committed to git)
-run: install eda models
+run: install
+	@echo "Running eda.ipynb ..."
+	$(NB_RUN) --ExecutePreprocessor.timeout=300 eda.ipynb
+	@echo "Running models.ipynb ..."
+	$(NB_RUN) --ExecutePreprocessor.timeout=600 models.ipynb
+	@echo "Done. Figures saved to outputs/figures/"
 
 # Dependencies
 
