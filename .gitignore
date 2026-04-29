@@ -1,4 +1,9 @@
 venv
-*.csv
 .DS_Store
 main.ipynb
+
+# Raw EPA/CDC source files (hundreds of MB each — download separately)
+data/raw/
+
+# Allow the small processed outputs (1,133 rows each, ~37 KB)
+!data/processed/*.csv

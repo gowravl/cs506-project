@@ -75,12 +75,19 @@ project/
 ## Setup
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+git clone <repo-url>
+cd cs506-project
+make run        # creates venv, installs deps, runs eda + models
 ```
 
-Run notebooks in order: profiling → cleaning → eda → models.
+`make run` uses the processed CSVs already committed to the repo — no raw data download needed.
+To see all available targets: `make help`
+
+**Reproduce from raw data** (optional — files are 200–300 MB each):
+```bash
+make data       # shows download instructions for EPA AQS + CDC NSSP files
+make all        # full pipeline: profiling → cleaning → eda → models
+```
 
 ## Key Findings
 
