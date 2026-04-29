@@ -19,7 +19,7 @@ FIGURES  := outputs/figures/eda_01_time_series_key_relationships.png \
             outputs/figures/model_02_feature_importance.png \
             outputs/figures/model_03_cv_fold_r2.png
 
-.PHONY: all run install profiling cleaning eda models data clean clean-outputs help
+.PHONY: all run install profiling cleaning eda models test data clean clean-outputs help
 
 ## Full pipeline from scratch (requires raw data — see: make data)
 all: install profiling cleaning eda models
@@ -71,6 +71,9 @@ $(FIGURES): models.ipynb $(FEATURES) venv/bin/activate
 	$(NB_RUN) --ExecutePreprocessor.timeout=600 models.ipynb
 	@echo "Modeling complete → outputs/figures/"
 
+test: venv/bin/activate
+	venv/bin/pytest tests/ -v
+
 # Utilities
 
 data:
@@ -117,6 +120,7 @@ help:
 	@echo "  make eda        Run eda.ipynb"
 	@echo "  make models     Run models.ipynb"
 	@echo ""
+	@echo "  make test       Run pytest test suite (12 tests, ~1s)"
 	@echo "  make data       Show raw data download instructions"
 	@echo "  make clean-outputs  Delete figures and features CSV"
 	@echo "  make clean      Full reset including venv"
