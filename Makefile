@@ -27,9 +27,9 @@ all: install profiling cleaning eda models
 ## Quick start after cloning (processed CSVs are committed to git)
 run: install
 	@echo "Running eda.ipynb ..."
-	$(NB_RUN) --ExecutePreprocessor.timeout=300 eda.ipynb
+	$(NB_RUN) --ExecutePreprocessor.timeout=300 notebooks/eda.ipynb
 	@echo "Running models.ipynb ..."
-	$(NB_RUN) --ExecutePreprocessor.timeout=600 models.ipynb
+	$(NB_RUN) --ExecutePreprocessor.timeout=600 notebooks/models.ipynb
 	@echo "Done. Figures saved to outputs/figures/"
 
 # Dependencies
@@ -47,28 +47,28 @@ venv/bin/activate: requirements.txt
 
 profiling: venv/bin/activate
 	@echo "Running data_profiling.ipynb ..."
-	$(NB_RUN) --ExecutePreprocessor.timeout=300 data_profiling.ipynb
+	$(NB_RUN) --ExecutePreprocessor.timeout=300 notebooks/data_profiling.ipynb
 	@echo "Profiling complete."
 
 cleaning: $(PROCESSED)
 
-$(PROCESSED): data_cleaning.ipynb venv/bin/activate
+$(PROCESSED): notebooks/data_cleaning.ipynb venv/bin/activate
 	@echo "Running data_cleaning.ipynb ..."
-	$(NB_RUN) --ExecutePreprocessor.timeout=600 data_cleaning.ipynb
+	$(NB_RUN) --ExecutePreprocessor.timeout=600 notebooks/data_cleaning.ipynb
 	@echo "Cleaning complete → data/processed/master_daily.csv"
 
 eda: $(FEATURES)
 
-$(FEATURES): eda.ipynb $(PROCESSED) venv/bin/activate
-	@echo "Running eda.ipynb ..."
-	$(NB_RUN) --ExecutePreprocessor.timeout=300 eda.ipynb
+$(FEATURES): notebooks/eda.ipynb $(PROCESSED) venv/bin/activate
+	@echo "Running notebooks/eda.ipynb ..."
+	$(NB_RUN) --ExecutePreprocessor.timeout=300 notebooks/eda.ipynb
 	@echo "EDA complete → data/processed/features_daily.csv"
 
 models: $(FIGURES)
 
-$(FIGURES): models.ipynb $(FEATURES) venv/bin/activate
-	@echo "Running models.ipynb ..."
-	$(NB_RUN) --ExecutePreprocessor.timeout=600 models.ipynb
+$(FIGURES): notebooks/models.ipynb $(FEATURES) venv/bin/activate
+	@echo "Running notebooks/models.ipynb ..."
+	$(NB_RUN) --ExecutePreprocessor.timeout=600 notebooks/models.ipynb
 	@echo "Modeling complete → outputs/figures/"
 
 test: venv/bin/activate
@@ -115,10 +115,10 @@ help:
 	@echo "  make all        Full pipeline from scratch (needs raw data — see: make data)"
 	@echo ""
 	@echo "  make install    Create venv, install requirements.txt"
-	@echo "  make profiling  Run data_profiling.ipynb  (needs raw data)"
-	@echo "  make cleaning   Run data_cleaning.ipynb   (needs raw data)"
-	@echo "  make eda        Run eda.ipynb"
-	@echo "  make models     Run models.ipynb"
+	@echo "  make profiling  Run notebooks/data_profiling.ipynb  (needs raw data)"
+	@echo "  make cleaning   Run notebooks/data_cleaning.ipynb   (needs raw data)"
+	@echo "  make eda        Run notebooks/eda.ipynb"
+	@echo "  make models     Run notebooks/models.ipynb"
 	@echo ""
 	@echo "  make test       Run pytest test suite (12 tests, ~1s)"
 	@echo "  make data       Show raw data download instructions"

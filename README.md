@@ -56,10 +56,11 @@ make clean         # remove venv and generated outputs for a full reset
 
 ```
 cs506-project/
-├── data_profiling.ipynb       # inspect all 6 raw datasets, document every issue found
-├── data_cleaning.ipynb        # execute cleaning decisions → master_daily.csv
-├── eda.ipynb                  # correlation analysis, lag profiles, feature engineering
-├── models.ipynb               # train Ridge / RF / XGBoost, evaluate, produce figures
+├── notebooks/
+│   ├── data_profiling.ipynb   # inspect all 6 raw datasets, document every issue found
+│   ├── data_cleaning.ipynb    # execute cleaning decisions → master_daily.csv
+│   ├── eda.ipynb              # correlation analysis, lag profiles, feature engineering
+│   └── models.ipynb           # train Ridge / RF / XGBoost, evaluate, produce figures
 │
 ├── data/
 │   ├── raw/                   # not in git — see: make data
@@ -73,7 +74,7 @@ cs506-project/
 │       ├── master_daily.csv   # 1,133 rows × 12 columns — merged clean dataset
 │       └── features_daily.csv # 1,119 rows × 16 columns — engineered features
 │
-├── outputs/figures/           # all plots produced by eda.ipynb and models.ipynb
+├── outputs/figures/           # all plots produced by notebooks/eda.ipynb and models.ipynb
 ├── tests/test_pipeline.py     # pytest smoke tests
 ├── .github/workflows/tests.yml
 ├── Makefile
