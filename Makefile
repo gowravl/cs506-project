@@ -21,8 +21,8 @@ FIGURES  := outputs/figures/eda_01_time_series_key_relationships.png \
 
 .PHONY: all run install profiling cleaning eda models test data clean clean-outputs help
 
-## Full pipeline from scratch (requires raw data — see: make data)
-all: install profiling cleaning eda models
+## Full pipeline from scratch — downloads raw data then runs all notebooks
+all: install data profiling cleaning eda models
 
 ## Quick start after cloning (processed CSVs are committed to git)
 run: install
