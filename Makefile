@@ -77,7 +77,7 @@ test: venv/bin/activate
 # Utilities
 
 data: venv/bin/activate
-	$(PYTHON) download_data.py
+	$(PYTHON) scripts/download_data.py
 
 clean-outputs:
 	rm -f $(FEATURES)

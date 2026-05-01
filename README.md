@@ -39,7 +39,7 @@ make data          # auto downloads all 6 datasets
 make all           # full pipeline: profiling → cleaning → eda → models
 ```
 
-`make data` runs `download_data.py`, which fetches all dataset zip files and the CDC NSSP daily respiratory dataset fully automatically.
+`make data` runs `scripts/download_data.py`, which fetches all dataset zip files and the CDC NSSP daily respiratory dataset fully automatically.
 
 Individual stages can also be run separately:
 
@@ -76,6 +76,8 @@ cs506-project/
 │       ├── master_daily.csv   # 1,133 rows × 12 columns — merged clean dataset
 │       └── features_daily.csv # 1,119 rows × 16 columns — engineered features
 │
+├── scripts/
+│   └── download_data.py       # parallel downloader for all 21 raw files
 ├── outputs/figures/           # all plots produced by notebooks/eda.ipynb and models.ipynb
 ├── tests/test_pipeline.py     # pytest smoke tests
 ├── .github/workflows/tests.yml
