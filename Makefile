@@ -76,25 +76,8 @@ test: venv/bin/activate
 
 # Utilities
 
-data:
-	@echo ""
-	@echo "Raw data is NOT in git (200–300 MB per file)."
-	@echo "Committed processed CSVs in data/processed/ are enough to run: make run"
-	@echo ""
-	@echo "To fully reproduce from raw data, download these files and place them in data/raw/:"
-	@echo ""
-	@echo "  EPA AQS Pre-Generated Data  →  https://aqs.epa.gov/aqsweb/airdata/download_files.html"
-	@echo "    data/raw/pm25/         daily_88101_{2022,2023,2024,2025}.csv"
-	@echo "    data/raw/no2/          daily_42602_{2022,2023,2024,2025}.csv"
-	@echo "    data/raw/ozone/        daily_44201_{2022,2023,2024,2025}.csv"
-	@echo "    data/raw/temperature/  daily_TEMP_{2022,2023,2024,2025}.csv"
-	@echo "    data/raw/humidity/     daily_RH_DP_{2022,2023,2024,2025}.csv"
-	@echo ""
-	@echo "  CDC NSSP Respiratory  →  https://www.cdc.gov/nssp/php/surveillance-data-platform.html"
-	@echo "    data/raw/respiratory/  nssp_respiratory.csv"
-	@echo ""
-	@echo "Then run: make all"
-	@echo ""
+data: venv/bin/activate
+	$(PYTHON) download_data.py
 
 clean-outputs:
 	rm -f $(FEATURES)
@@ -121,7 +104,7 @@ help:
 	@echo "  make models     Run notebooks/models.ipynb"
 	@echo ""
 	@echo "  make test       Run pytest test suite (12 tests, ~1s)"
-	@echo "  make data       Show raw data download instructions"
+	@echo "  make data       Download raw EPA files"
 	@echo "  make clean-outputs  Delete figures and features CSV"
 	@echo "  make clean      Full reset including venv"
 	@echo ""

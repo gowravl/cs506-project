@@ -35,9 +35,11 @@ make help          # list all available Makefile targets
 **To reproduce everything from raw data** (optional EPA files are 200–300 MB each):
 
 ```bash
-make data          # prints download instructions for all 6 raw datasets with URLs
+make data          # auto downloads all 6 datasets
 make all           # full pipeline: profiling → cleaning → eda → models
 ```
+
+`make data` runs `download_data.py`, which fetches all dataset zip files and the CDC NSSP daily respiratory dataset fully automatically.
 
 Individual stages can also be run separately:
 
